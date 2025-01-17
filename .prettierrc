@@ -1,0 +1,22 @@
+{
+  "tabWidth": 2,
+  "useTabs": false,
+  "html.format.wrapAttributes": "force-aligned",
+  "singleQuote": true,
+  "trailingComma": "all",
+  "endOfLine": "auto",
+  "overrides": [
+    {
+      "files": ["**/*.css", "**/*.scss", "**/*.html"],
+      "options": {
+        "singleQuote": false
+      }
+    },
+    {
+      "files": ["**/*.html"],
+      "options": {
+        "tabWidth": 4
+      }
+    }
+  ]
+}
