@@ -1,4 +1,9 @@
 /* You can add global styles to this file, and also import other style files */
 
 /* Importing Bootstrap SCSS file. */
-@import 'bootstrap/scss/bootstrap';
+@use 'bootstrap/scss/bootstrap' as *;
+
+body{
+  width: 100%;
+  height: 100%;
+}
