@@ -3,7 +3,15 @@
 <div class="outer-window">
   <div class="inner-window">
     <div class="p-2 d-flex gap-2">
-      <button class="btn btn-primary" (click)="clone()">Добавить</button>
+      <button class="btn btn-primary"
+              (click)="clone()"
+              ngbTooltip="Копировать фигуру">Добавить</button>
+      <div>
+        Управление:
+        <span class="me-1"><kbd>ЛКМ</kbd> - перемещение точек/фигуры.</span>
+        <span class="me-1"><kbd>ПКМ</kbd> на фигуру - добавить новую точку.</span>
+        <span class="me-1"><kbd>ПКМ</kbd> на точку - удалить точку.</span>
+      </div>
     </div>
     <div class="mt-2 border border-primary border-2 position-relative"
          style="width: 100%;">

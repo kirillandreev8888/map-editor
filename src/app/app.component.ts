@@ -1,11 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-// import { RouterOutlet } from '@angular/router';
+import { NgbModule, NgbTooltipModule } from '@ng-bootstrap/ng-bootstrap';
+import { cloneDeep } from 'lodash';
 import Raphael, { RaphaelElement, RaphaelPaper } from 'raphael';
 import { Subject, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
-  // imports: [RouterOutlet],
+  imports: [NgbModule, NgbTooltipModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })
@@ -28,13 +29,14 @@ export class AppComponent implements OnInit, OnDestroy {
 
   subscriptios = new Subscription();
 
-  polygonOG?: Polygon;
+  paper?: RaphaelPaper;
 
   ngOnInit(): void {
     const mapCanvas = document.getElementById('map-canvas');
     if (mapCanvas) {
       this.observer.observe(mapCanvas);
       let paper = Raphael(mapCanvas, 100, 100);
+      this.paper = paper;
       this.subscriptios.add(
         this.resize$.subscribe((res) => {
           paper.setSize(res.width, res.height);
@@ -42,13 +44,7 @@ export class AppComponent implements OnInit, OnDestroy {
         }),
       );
       const polygon = new Polygon(paper);
-      this.polygonOG = polygon;
-      const points = [
-        { x: 100, y: 100 },
-        { x: 300, y: 100 },
-        { x: 300, y: 200 },
-        { x: 100, y: 200 },
-      ];
+      const points = cloneDeep(examplePoints);
       polygon.createVerticles(points);
       polygon.drawPolygon();
     }
@@ -60,11 +56,12 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   clone() {
-    const polygon = new Polygon(this.polygonOG!.paper);
+    const polygon = new Polygon(this.paper!);
     const randomMarginX = Math.floor(Math.random() * 300);
     const randomMarginY = Math.floor(Math.random() * 300);
+
     polygon.createVerticles(
-      this.polygonOG!.verticles.map((p) => ({
+      cloneDeep(examplePoints).map((p) => ({
         x: p.x + randomMarginX,
         y: p.y + randomMarginY,
       })),
@@ -72,7 +69,7 @@ export class AppComponent implements OnInit, OnDestroy {
     const randomColor =
       '#' + (Math.random() * 0xfffff * 1000000).toString(16).slice(0, 6);
     polygon.color = randomColor;
-    polygon.verticles.forEach((p) => (p.element?.attr({ fill: polygon.color })));
+    polygon.verticles.forEach((p) => p.element?.attr({ fill: polygon.color }));
 
     polygon.drawPolygon();
   }
@@ -122,9 +119,9 @@ class Polygon {
     this.element.drag(
       (dx: number, dy: number) => {
         this.verticles.forEach((verticle, i) => {
-          verticle.x  = wh[i].width + dx;
+          verticle.x = wh[i].width + dx;
           verticle.y = wh[i].height + dy;
-        })
+        });
         this.updateVerticles();
         this.redrawPolygon();
       },
@@ -257,3 +254,10 @@ function pointToSegmentDistance(
     (point.x - closestPoint.x) ** 2 + (point.y - closestPoint.y) ** 2,
   );
 }
+
+const examplePoints = [
+  { x: 100, y: 100 },
+  { x: 300, y: 100 },
+  { x: 300, y: 200 },
+  { x: 100, y: 200 },
+];
