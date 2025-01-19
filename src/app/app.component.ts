@@ -72,6 +72,8 @@ export class AppComponent implements OnInit, OnDestroy {
     const randomColor =
       '#' + (Math.random() * 0xfffff * 1000000).toString(16).slice(0, 6);
     polygon.color = randomColor;
+    polygon.verticles.forEach((p) => (p.element?.attr({ fill: polygon.color })));
+
     polygon.drawPolygon();
   }
 }
@@ -115,6 +117,24 @@ class Polygon {
       this.redrawPolygon();
       return false;
     };
+
+    let wh: WH[] = [];
+    this.element.drag(
+      (dx: number, dy: number) => {
+        this.verticles.forEach((verticle, i) => {
+          verticle.x  = wh[i].width + dx;
+          verticle.y = wh[i].height + dy;
+        })
+        this.updateVerticles();
+        this.redrawPolygon();
+      },
+      () => {
+        wh = this.verticles.map((p) => ({ width: p.x, height: p.y }));
+      },
+      () => {
+        //endDrag
+      },
+    );
   }
 
   createVerticles(points: { x: number; y: number }[]) {
@@ -165,11 +185,10 @@ class Polygon {
   }
 
   redrawPolygon() {
-    // this.paper.clear();
-    // this.clear();
-    this.element?.remove();
-    this.drawPolygon();
-    // this.createVertices();
+    // this.element?.remove();
+    // this.drawPolygon();
+    const pathString = this.verticles.map((p) => `${p.x},${p.y}`).join(' ');
+    this.element?.attr('path', `M${pathString}Z`);
   }
 
   clear() {
@@ -238,16 +257,3 @@ function pointToSegmentDistance(
     (point.x - closestPoint.x) ** 2 + (point.y - closestPoint.y) ** 2,
   );
 }
-
-// Пример использования
-const vertices: Point[] = [
-  { x: 0, y: 0 },
-  { x: 4, y: 0 },
-  { x: 4, y: 3 },
-  { x: 0, y: 3 },
-];
-
-const newVertex: Point = { x: 2, y: 1 };
-
-const updatedVertices = addVertex(vertices, newVertex);
-console.log(updatedVertices);
