@@ -10,6 +10,7 @@ import { Subject, Subscription } from 'rxjs';
   styleUrl: './app.component.scss',
 })
 export class AppComponent implements OnInit, OnDestroy {
+  //TODO сделать масштабирование графики при изменении размера полотна
   resize$ = new Subject<WH>();
   currentWH: WH = { width: 0, height: 0 };
   observer = new ResizeObserver((entries) => {
@@ -27,6 +28,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   subscriptios = new Subscription();
 
+  polygonOG?: Polygon;
+
   ngOnInit(): void {
     const mapCanvas = document.getElementById('map-canvas');
     if (mapCanvas) {
@@ -39,6 +42,7 @@ export class AppComponent implements OnInit, OnDestroy {
         }),
       );
       const polygon = new Polygon(paper);
+      this.polygonOG = polygon;
       const points = [
         { x: 100, y: 100 },
         { x: 300, y: 100 },
@@ -53,6 +57,22 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscriptios.unsubscribe();
     this.observer.disconnect();
+  }
+
+  clone() {
+    const polygon = new Polygon(this.polygonOG!.paper);
+    const randomMarginX = Math.floor(Math.random() * 300);
+    const randomMarginY = Math.floor(Math.random() * 300);
+    polygon.createVerticles(
+      this.polygonOG!.verticles.map((p) => ({
+        x: p.x + randomMarginX,
+        y: p.y + randomMarginY,
+      })),
+    );
+    const randomColor =
+      '#' + (Math.random() * 0xfffff * 1000000).toString(16).slice(0, 6);
+    polygon.color = randomColor;
+    polygon.drawPolygon();
   }
 }
 
@@ -165,9 +185,9 @@ interface Point {
 
 function addVertex(vertices: Point[], newVertex: Point): Point[] {
   if (vertices.length < 2) {
-      // Если вершин меньше двух, просто добавляем новую вершину
-      vertices.push(newVertex);
-      return vertices;
+    // Если вершин меньше двух, просто добавляем новую вершину
+    vertices.push(newVertex);
+    return vertices;
   }
 
   let minDistance = Infinity;
@@ -175,17 +195,17 @@ function addVertex(vertices: Point[], newVertex: Point): Point[] {
 
   // Проходим по всем парам соседних вершин
   for (let i = 0; i < vertices.length; i++) {
-      const current = vertices[i];
-      const next = vertices[(i + 1) % vertices.length]; // Следующая вершина (с учетом цикличности)
+    const current = vertices[i];
+    const next = vertices[(i + 1) % vertices.length]; // Следующая вершина (с учетом цикличности)
 
-      // Вычисляем расстояние от новой вершины до текущей и следующей
-      const distance = pointToSegmentDistance(newVertex, current, next);
+    // Вычисляем расстояние от новой вершины до текущей и следующей
+    const distance = pointToSegmentDistance(newVertex, current, next);
 
-      // Если найдено меньшее расстояние, обновляем минимальное расстояние и индекс вставки
-      if (distance < minDistance) {
-          minDistance = distance;
-          insertIndex = (i + 1) % vertices.length; // Вставляем после текущей вершины
-      }
+    // Если найдено меньшее расстояние, обновляем минимальное расстояние и индекс вставки
+    if (distance < minDistance) {
+      minDistance = distance;
+      insertIndex = (i + 1) % vertices.length; // Вставляем после текущей вершины
+    }
   }
 
   // Вставляем новую вершину в массив
@@ -194,19 +214,29 @@ function addVertex(vertices: Point[], newVertex: Point): Point[] {
 }
 
 // Функция для вычисления расстояния от точки до отрезка
-function pointToSegmentDistance(point: Point, start: Point, end: Point): number {
+function pointToSegmentDistance(
+  point: Point,
+  start: Point,
+  end: Point,
+): number {
   const l2 = (end.x - start.x) ** 2 + (end.y - start.y) ** 2; // Длина отрезка в квадрате
-  if (l2 === 0) return Math.sqrt((point.x - start.x) ** 2 + (point.y - start.y) ** 2); // start и end совпадают
+  if (l2 === 0)
+    return Math.sqrt((point.x - start.x) ** 2 + (point.y - start.y) ** 2); // start и end совпадают
 
-  const t = ((point.x - start.x) * (end.x - start.x) + (point.y - start.y) * (end.y - start.y)) / l2;
+  const t =
+    ((point.x - start.x) * (end.x - start.x) +
+      (point.y - start.y) * (end.y - start.y)) /
+    l2;
   const clampedT = Math.max(0, Math.min(1, t)); // Ограничиваем t от 0 до 1
 
   const closestPoint = {
-      x: start.x + clampedT * (end.x - start.x),
-      y: start.y + clampedT * (end.y - start.y),
+    x: start.x + clampedT * (end.x - start.x),
+    y: start.y + clampedT * (end.y - start.y),
   };
 
-  return Math.sqrt((point.x - closestPoint.x) ** 2 + (point.y - closestPoint.y) ** 2);
+  return Math.sqrt(
+    (point.x - closestPoint.x) ** 2 + (point.y - closestPoint.y) ** 2,
+  );
 }
 
 // Пример использования
